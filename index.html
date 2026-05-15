@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PufferPan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050505;
+            --accent: #007aff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: #888888;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+            z-index: -1;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            background: rgba(5, 5, 5, 0.8);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo { font-family: 'JetBrains Mono', monospace; font-weight: 700; letter-spacing: -1px; font-size: 1.2rem; }
+        .logo span { color: var(--accent); }
+
+        .system-status {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 6px; height: 6px;
+            background: #00ff66;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff66;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        main { max-width: 1400px; margin: 4rem auto; padding: 0 2rem; }
+
+        .hero { margin-bottom: 5rem; }
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 700;
+            letter-spacing: -2px;
+            margin-bottom: 1rem;
+            background: linear-gradient(to bottom, #fff 40%, #555);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .video-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.5;
+            transition: opacity 0.4s;
+        }
+
+        .card:hover video {
+            opacity: 1;
+        }
+
+        /* 鼠标悬停时的扫描特效 */
+        .video-container::after {
+            content: "";
+            position: absolute;
+            top: -100%; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(0deg, transparent, rgba(0, 122, 255, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        .card:hover .video-container::after {
+            animation: scanline 2s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { top: -100%; }
+            100% { top: 100%; }
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--accent);
+            z-index: 2;
+        }
+
+        .card-info { padding: 1.5rem; border-top: 1px solid var(--border); }
+        .card-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card-title { font-size: 1.1rem; font-weight: 500; color: var(--text-main); }
+
+        .contact-container {
+            margin-top: 8rem; padding: 4rem;
+            background: linear-gradient(145deg, #0a0a0a, #050505);
+            border-radius: 32px;
+            border: 1px solid var(--border);
+            display: grid; grid-template-columns: 1fr 1fr;
+            align-items: center;
+        }
+
+        .contact-links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+        .contact-item { display: flex; flex-direction: column; gap: 4px; }
+        .contact-item label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
+        .contact-item a, .contact-item span { font-family: 'JetBrains Mono', monospace; color: var(--text-main); text-decoration: none; }
+        .contact-item a:hover { color: var(--accent); }
+
+        footer { padding: 4rem 2rem; text-align: center; font-size: 0.75rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            .contact-container { grid-template-columns: 1fr; padding: 2rem; gap: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo"><img src="logo.png"  width="191" height="30" ></div>
+        <div class="system-status">
+            <div class="status-dot"></div>
+             PufferPan
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>你好呀！</h1>
+            <p style="color: var(--text-dim); max-width: 600px;">
+                > 可以看看这里部分的素材<br>
+                > 当然也可以把鼠标放上去看看什么样子
+            </p>
+        </section>
+
+        <div class="grid" id="videoGrid">
+            </div>
+
+        <section class="contact-container">
+            <div>
+                <h2 style="font-size: 2rem; margin-bottom: 1rem;">联系我吧..</h2>
+                <p style="color: var(--text-dim);">如有合作意向或反馈意见..请通过以下方式联系</p>
+            </div>
+            <div class="contact-links">
+                <div class="contact-item"><label>QQ</label><span>3281644795</span></div>
+                <div class="contact-item"><label>交流群</label><a href="https://qm.qq.com/q/GFCEiIFaeY">1101637716</a></div>
+                  <div class="contact-item"><label>QQ1群</label><a href="https://qm.qq.com/q/RRYogqaniW">973437283</a></div>
+                 <div class="contact-item"><label>QQ2群</label><a href="https://qm.qq.com/q/i3NBmGO0qA">1101637716</a></div>
+                <div class="contact-item"><label>Bilibili</label><a href="https://space.bilibili.com/430029253" target="_blank">View Channel</a></div>
+            </div>
+        </section>
+    </main>
+
+
+    <script>
+        const videoData = [
+            {id: '01', title: '位置暴露.mp4', status: 'ARCHIVED', src: '1.mp4'},
+            {id: '02', title: '正在扫描移动位置.mp4', status: 'DECODED', src: '2.mp4'},
+            {id: '03', title: '受到致命打击.mp4', status: 'LOCKED', src: '3.mp4'},
+            {id: '04', title: '发射制导导弹.mp4', status: 'READY', src: '4.mp4'},
+            {id: '05', title: '被标记.mp4', status: 'READY', src: '5.mp4'},
+            {id: '06', title: '战略信标已部署.mp4', status: 'ANALYZING', src: '6.mp4'},
+            {id: '07', title: '尖塔结构严重受损.mp4', status: 'ENCRYPTED', src: '7.mp4'},
+            {id: '08', title: '被钩爪命中.mp4', status: 'ARCHIVED', src: '8.mp4'},
+            {id: '09', title: '被钩爪命中打断绳索.mp4', status: 'LIVE', src: '9.mp4'}
+        ];
+
+        const grid = document.getElementById('videoGrid');
+
+        videoData.forEach((item, i) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.opacity = '0';
+            card.style.animation = `fadeIn 0.8s ease-out forwards ${i * 0.1}s`;
+
+            card.innerHTML = `
+                <div class="video-container">
+                    <video loop muted playsinline preload="auto">
+                        <source src="${item.src}" type="video/mp4">
+                    </video>
+                    <div class="video-overlay">
+                        <div style="display:flex; justify-content:space-between">
+                            <span class="rec-status">STANDBY</span>
+                            <span>CAM_${item.id}</span>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="card-info">
+                    <div class="card-tag">
+                        <span>LOG_${item.id} // ${item.status}</span>
+                        <span style="color:var(--text-dim)">AUTO_LOOP</span>
+                    </div>
+                    <div class="card-title">${item.title}</div>
+                </div>
+            `;
+
+            const video = card.querySelector('video');
+            const recStatus = card.querySelector('.rec-status');
+
+            // 核心交互逻辑：移入播放，移出停止并归位
+            card.addEventListener('mouseenter', () => {
+                video.play();
+                recStatus.innerText = 'PLAYING ●';
+                recStatus.style.color = '#ff3e3e';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                video.pause();
+                video.currentTime =  video.pause(); // 停止并回到第一帧
+                recStatus.innerText = 'STANDBY';
+                recStatus.style.color = 'var(--accent)';
+            });
+
+            grid.appendChild(card);
+        });
+    </script>
+</body>
+</html>
